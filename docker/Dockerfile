@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y \
 
 RUN echo "zend_extension=opcache.so" > /usr/local/etc/php/conf.d/opcache.ini
 
+RUN pecl install redis && docker-php-ext-enable redis
+
 # Composer installation
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
 && composer --version

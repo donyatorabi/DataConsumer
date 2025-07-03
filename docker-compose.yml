@@ -16,6 +16,8 @@ services:
                 condition: service_healthy
             rabbitmq:
                 condition: service_healthy
+            redis:
+                condition: service_started
         networks:
             - shared-rabbit
             - symfony
@@ -43,6 +45,11 @@ services:
             - mysql_data:/var/lib/mysql
         networks:
             - symfony
+        environment:
+            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            MYSQL_DATABASE: ${MYSQL_DATABASE}
+            MYSQL_USER: ${MYSQL_USER}
+            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
         healthcheck:
             test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
             interval: 10s
@@ -62,6 +69,14 @@ services:
             retries: 5
         networks:
             - shared-rabbit
+
+    redis:
+        image: redis:alpine
+        container_name: redis
+        ports:
+            - "6379:6379"
+        networks:
+            - symfony
 
 volumes:
     mysql_data:
