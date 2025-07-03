@@ -1,0 +1,136 @@
+.upload-box {
+    border: 2px dashed #6c757d;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    background-color: #f8f9fa;
+    transition: background 0.3s ease;
+}
+
+.upload-box:hover {
+    background-color: #e9ecef;
+}
+
+.submit-btn {
+    margin-top: 20px;
+}
+
+#upload-message {
+    transition: all 0.4s ease-in-out;
+}
+
+.table-container {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.styled-table {
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 0.9em;
+    font-family: sans-serif;
+    min-width: 400px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+}
+
+.styled-table thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: left;
+}
+
+.styled-table th,
+.styled-table td {
+    padding: 12px 15px;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding-left: 0;
+    margin-top: 20px;
+    gap: 6px;
+}
+
+.pagination .page-item {
+    display: inline;
+}
+
+.pagination .page-link {
+    color: #009879;
+    background-color: #fff;
+    border: 1px solid #009879;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination .page-link:hover {
+    background-color: #009879;
+    color: white;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #009879;
+    color: #fff;
+    border: 1px solid #009879;
+}
+.progress-wrapper {
+    max-width: 100%;
+    margin-top: 20px;
+}
+
+.progress-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #555;
+}
+
+.fancy-progress-bar {
+    background-color: #e6e6e6;
+    border-radius: 20px;
+    overflow: hidden;
+    height: 24px;
+    width: 100%;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.fancy-progress-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #00c9a7, #009879);
+    width: 0%;
+    color: #fff;
+    text-align: right;
+    padding-right: 10px;
+    line-height: 24px;
+    font-weight: bold;
+    transition: width 0.4s ease;
+}
+
+.fancy-progress-fill span {
+    position: relative;
+    right: 0;
+}
