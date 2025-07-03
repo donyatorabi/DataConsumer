@@ -12,8 +12,6 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class EmployeeRepository extends ServiceEntityRepository
 {
-    private Connection $connection;
-
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Employee::class);
@@ -47,11 +45,5 @@ class EmployeeRepository extends ServiceEntityRepository
             ->select('COUNT(e.id)')
             ->getQuery()
             ->getSingleScalarResult();
-    }
-
-    public function flushBatch(array $values, array $placeholders, array $types): void
-    {
-        $sql = 'INSERT INTO employee (name, email, position, salary) VALUES ' . implode(', ', $placeholders);
-        $this->connection->executeStatement($sql, $values, $types);
     }
 }

@@ -52,29 +52,4 @@ class ExcelImportService
     {
         return $this->importStatusRepository->find($filename);
     }
-
-    public function updateTotalRows(string $filename, int $total): void
-    {
-        $this->importStatusRepository->updateTotalRows($filename, $total);
-    }
-
-    public function flushBatch(array $values, array $placeholders, array $types): void
-    {
-        $this->employeeRepository->flushBatch(values: $values, placeholders: $placeholders, types: $types);
-    }
-
-    public function updateProgress(string $filename, int $processed, int $total): void
-    {
-        $this->importStatusRepository->updateProgress(filename: $filename, processed: $processed, total: $total);
-    }
-
-    public function markAsCompleted(string $filename): void
-    {
-        $this->importStatusRepository->markAsComplete($filename);
-    }
-
-    public function markAsFailed(string $filename, string $errorMessage): void
-    {
-        $this->importStatusRepository->markAsFailed(filename: $filename, errorMessage: $errorMessage);
-    }
 }
