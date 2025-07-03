@@ -2,6 +2,7 @@
 
 namespace App\MessageHandler;
 
+use App\Dto\ImportStatusDto;
 use App\Message\ImportExcelMessage;
 use App\Service\ExcelImportDataHandler;
 use App\Service\RowValidatorService;
@@ -15,9 +16,9 @@ class ImportExcelMessageHandler
     private const BATCH_SIZE = 1000;
 
     public function __construct(
-        private RowValidatorService    $validator,
+        private RowValidatorService $validator,
         private ExcelImportDataHandler $excelImportDataHandler,
-        private LoggerInterface        $logger,
+        private LoggerInterface $logger,
     ) {}
 
     public function __invoke(ImportExcelMessage $message): void
@@ -35,16 +36,24 @@ class ImportExcelMessageHandler
             return;
         }
 
-        unset($rows[0]); // Remove header row
+        unset($rows[0]); // Remove header
         $totalRows = count($rows);
-        $this->excelImportDataHandler->updateTotalRows($fileName, $totalRows);
+
+        $dto = new ImportStatusDto(
+            filename: $fileName,
+            processedRows: 0,
+            totalRows: $totalRows,
+            completed: false
+        );
+
+        $this->excelImportDataHandler->updateTotalRows($dto);
 
         try {
-            $this->processRows($rows, $fileName, $totalRows);
-            $this->excelImportDataHandler->markAsComplete($fileName);
+            $this->processRows($rows, $dto);
+            $this->excelImportDataHandler->markAsComplete($dto->filename);
             $this->logger->info("Excel import completed for file: $fileName");
-        } catch (\Throwable $exception) {
-            $this->handleFailure($fileName, $exception);
+        } catch (\Throwable $e) {
+            $this->handleFailure($dto->filename, $e);
         }
     }
 
@@ -59,7 +68,7 @@ class ImportExcelMessageHandler
         }
     }
 
-    private function processRows(array $rows, string $fileName, int $totalRows): void
+    private function processRows(array $rows, ImportStatusDto $dto): void
     {
         $insertValues = [];
         $placeholders = [];
@@ -88,7 +97,13 @@ class ImportExcelMessageHandler
             if (count($placeholders) === self::BATCH_SIZE) {
                 $this->excelImportDataHandler->flushBatch($insertValues, $placeholders, $types);
                 $processedRows += self::BATCH_SIZE;
-                $this->excelImportDataHandler->updateProgress($fileName, $processedRows, $totalRows);
+
+                $updatedDto = new ImportStatusDto(
+                    filename: $dto->filename,
+                    processedRows: $processedRows,
+                    totalRows: $dto->totalRows
+                );
+                $this->excelImportDataHandler->updateProgress($updatedDto);
 
                 $insertValues = $placeholders = $types = [];
             }
@@ -96,8 +111,15 @@ class ImportExcelMessageHandler
 
         if (!empty($insertValues)) {
             $processedRows += count($placeholders);
+
             $this->excelImportDataHandler->flushBatch($insertValues, $placeholders, $types);
-            $this->excelImportDataHandler->updateProgress($fileName, $processedRows, $totalRows);
+
+            $updatedDto = new ImportStatusDto(
+                filename: $dto->filename,
+                processedRows: $processedRows,
+                totalRows: $dto->totalRows
+            );
+            $this->excelImportDataHandler->updateProgress($updatedDto);
         }
     }
 
@@ -105,6 +127,9 @@ class ImportExcelMessageHandler
     {
         $this->logger->error("Import failed: " . $e->getMessage());
 
-        $this->excelImportDataHandler->markAsFailed(filename: $filename, errorMessage: $e->getMessage());
+        $this->excelImportDataHandler->markAsFailed(
+            $filename,
+            $e->getMessage()
+        );
     }
 }
