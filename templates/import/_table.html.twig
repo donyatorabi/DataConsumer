@@ -1,0 +1,67 @@
+<table class="styled-table">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Position</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in data %}
+        <tr>
+            <td>{{ loop.index + (page - 1) * limit }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.email }}</td>
+            <td>{{ row.position }}</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td colspan="4" class="text-center text-muted">No data found.</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{# --- Robust Pagination Logic --- #}
+{% set rawPages = (total / limit)|round(0, 'ceil') %}
+{% set pages = rawPages > 0 ? rawPages : 1 %}
+{% set current = page > pages ? pages : (page < 1 ? 1 : page) %}
+{% set start = max(2, current - 2) %}
+{% set end = min(pages - 1, current + 2) %}
+
+{% if total > 0 %}
+    <nav>
+        <ul class="pagination justify-content-center mt-4">
+
+            {# First page #}
+            <li class="page-item {% if current == 1 %}active{% endif %}">
+                <a href="#" class="page-link pagination-link" data-page="1">1</a>
+            </li>
+
+            {# Left ellipsis #}
+            {% if start > 2 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+
+            {# Page numbers around current #}
+            {% for i in start..end %}
+                <li class="page-item {% if i == current %}active{% endif %}">
+                    <a href="#" class="page-link pagination-link" data-page="{{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {# Right ellipsis #}
+            {% if end < pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+
+            {# Last page #}
+            {% if pages > 1 %}
+                <li class="page-item {% if current == pages %}active{% endif %}">
+                    <a href="#" class="page-link pagination-link" data-page="{{ pages }}">{{ pages }}</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}

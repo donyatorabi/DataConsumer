@@ -1,0 +1,109 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    <div class="container my-5">
+        <h3 class="mb-4">📄 Import Excel File</h3>
+
+        <div class="upload-box mb-4">
+            {{ form_start(form, { 'attr': { 'id': 'excel-upload-form', 'enctype': 'multipart/form-data' } }) }}
+            {{ form_row(form.file) }}
+            <button class="btn btn-primary submit-btn" type="submit">🚀 Upload & Import</button>
+            {{ form_end(form) }}
+        </div>
+
+        <div id="import-progress-container" class="progress-wrapper" style="display: none;">
+            <div class="progress-label">Importing... <span id="import-progress-text">0%</span></div>
+            <div class="fancy-progress-bar">
+                <div id="import-progress-bar" class="fancy-progress-fill" style="width: 0%;">
+                    <span>0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="upload-message" class="mt-3"></div>
+
+        <div id="table-container" class="mt-5 table-container">
+            {% include 'import/_table.html.twig' with {
+                data: data,
+                page: page,
+                limit: limit,
+                total: total
+            } %}
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('excel-upload-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('{{ path('app_import') }}', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('upload-message').innerHTML =
+                        `<div class="alert alert-info">⏳ Processing file... Please wait.</div>`;
+                    waitForImportToFinish(data.filename);
+                })
+                .catch(err => {
+                    document.getElementById('upload-message').innerHTML =
+                        `<div class="alert alert-danger">❌ Upload failed.</div>`;
+                });
+        });
+
+        function waitForImportToFinish(filename) {
+            const progressBar = document.getElementById('import-progress-bar');
+            const progressText = document.getElementById('import-progress-text');
+            const progressSpan = progressBar.querySelector('span');
+            const container = document.getElementById('import-progress-container');
+            container.style.display = 'block';
+
+            const check = () => {
+                fetch(`/import/status/${filename}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.completed) {
+                            progressBar.style.width = '100%';
+                            progressText.innerText = '100%';
+                            progressSpan.innerText = '100%';
+                            loadTable(1);
+                            document.getElementById('upload-message').innerHTML =
+                                `<div class="alert alert-success">✅ Import complete.</div>`;
+                            container.style.display = 'none';
+                        } else if (data.failed) {
+                            document.getElementById('upload-message').innerHTML =
+                                `<div class="alert alert-danger">❌ Import failed: ${data.error}</div>`;
+                            container.style.display = 'none';
+                        } else {
+                            fetch(`/import/progress/${filename}`)
+                                .then(res => res.json())
+                                .then(progressData => {
+                                    const progress = progressData.progress || 0;
+                                    progressBar.style.width = progress + '%';
+                                    progressText.innerText = progress + '%';
+                                    progressSpan.innerText = progress + '%';
+                                });
+                            setTimeout(check, 2000);
+                        }
+                    });
+            };
+            check();
+        }
+
+        function loadTable(page = 1) {
+            fetch(`/import/table?page=${page}`)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('table-container').innerHTML = html;
+                });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (e.target.classList.contains('pagination-link')) {
+                e.preventDefault();
+                loadTable(e.target.dataset.page);
+            }
+        });
+    </script>
+{% endblock %}
