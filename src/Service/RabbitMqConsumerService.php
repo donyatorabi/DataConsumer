@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\AuditLog;
+use App\Repository\AuditLogRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -19,8 +20,8 @@ class RabbitMqConsumerService
     private string $rabbitPassword;
 
     public function __construct(
-        private EntityManagerInterface $em,
-        private ParameterBagInterface  $parameterBag,
+        private AuditLogRepository    $auditLogRepository,
+        private ParameterBagInterface $parameterBag,
     )
     {
         $this->rabbitHost = $this->parameterBag->get('rabbitmq.host');
@@ -53,7 +54,6 @@ class RabbitMqConsumerService
             $channel->wait();
         }
     }
-
     private function handleMessage(AMQPMessage $msg, OutputInterface $output): void
     {
         $data = json_decode($msg->getBody(), true);
@@ -63,14 +63,8 @@ class RabbitMqConsumerService
             return;
         }
 
-        $audit = new AuditLog();
-        $audit->setEvent($data['event'] ?? 'unknown');
-        $audit->setPayload($data);
-        $audit->setReceivedAt(new \DateTime());
-
         try {
-            $this->em->persist($audit);
-            $this->em->flush();
+            $this->auditLogRepository->storeEvent($data['event'] ?? 'unknown', $data);
             $output->writeln('<info>Message stored</info>');
         } catch (\Throwable $e) {
             $output->writeln('<error>DB Error: ' . $e->getMessage() . '</error>');
